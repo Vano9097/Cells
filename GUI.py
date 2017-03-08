@@ -11,13 +11,15 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor
 
+import main
+
 
 class Settings:
 
-    WIDTH = 20
-    HEIGHT = 20
-    NUM_BLOCKS_X = 10
-    NUM_BLOCKS_Y = 10
+    WIDTH = 50
+    HEIGHT = 50
+    NUM_BLOCKS_X = 5
+    NUM_BLOCKS_Y = 5
     INDENTATION = 2
 
 
@@ -53,13 +55,13 @@ class QS(QtWidgets.QGraphicsScene):
     def __init__(self, *args):
         super().__init__(*args)
 
+        self.Table = main.Game(Settings.NUM_BLOCKS_X, Settings.NUM_BLOCKS_Y)
         self.lines = []
-
         self.draw_grid()
-
         self.set_opacity(0.1)
         # self.set_visible(False)
         # self.delete_grid()
+        self.draw_cells()
 
     def draw_cell(self, x=0, y=0, color=1):
         pen = QPen(QtCore.Qt.NoPen)
@@ -70,6 +72,13 @@ class QS(QtWidgets.QGraphicsScene):
         X = Settings.WIDTH * x + Settings.INDENTATION
         Y = Settings.HEIGHT * y + Settings.INDENTATION
         self.addRect(X, Y, Settings.WIDTH-2*Settings.INDENTATION, Settings.HEIGHT-2*Settings.INDENTATION, pen, brush)
+
+    def draw_cells(self):
+        for x in range(Settings.NUM_BLOCKS_X):
+            for y in range(Settings.NUM_BLOCKS_Y):
+                self.draw_cell(x, y, self.Table.get(x, y).color)
+
+
 
     def draw_grid(self):
         width = Settings.NUM_BLOCKS_X * Settings.WIDTH
@@ -127,6 +136,12 @@ class QV(QtWidgets.QGraphicsView):
 
         self.scale(1.5, 1.5)
 
+    def on_zoom_out(self):
+        if not self.scene():
+            return
+
+        self.scale(1.0 / 1.5, 1.0 / 1.5)
+
     def mousePressEvent(self, event):
         cell_x = event.x()//Settings.WIDTH
         cell_y = event.y()//Settings.HEIGHT
@@ -134,34 +149,14 @@ class QV(QtWidgets.QGraphicsView):
             print(cell_x, cell_y)
             # print(self.scale())
             if event.button() == Qt.LeftButton:
-                print("left")
+                a.Table.turn(cell_x, cell_y)
+                #print(a.Table)
+                a.draw_cells()
+                #a.draw_cell(cell_x,cell_y)
             else:
-                print('right')
+                return
         else:
             return
-    def on_zoom_out(self):
-        if not self.scene():
-            return
-
-        self.scale(1.0 / 1.5, 1.0 / 1.5)
-
-    # def drawBackground(self, painter, rect):
-    #     gr = rect.toRect()
-    #     start_x = gr.left() + Settings.WIDTH - (gr.left() % Settings.WIDTH)
-    #     start_y = gr.top() + Settings.HEIGHT - (gr.top() % Settings.HEIGHT)
-    #     painter.save()
-    #     painter.setPen(QtGui.QColor(60, 70, 80).lighter(90))
-    #     painter.setOpacity(0.7)
-    #
-    #     for x in range(start_x, gr.right(), Settings.WIDTH):
-    #         painter.drawLine(x, gr.top(), x, gr.bottom())
-    #
-    #     for y in range(start_y, gr.bottom(), Settings.HEIGHT):
-    #         painter.drawLine(gr.left(), y, gr.right(), y)
-    #
-    #     painter.restore()
-    #
-    #     super().drawBackground(painter, rect)
 
 
 if __name__ == '__main__':
@@ -170,7 +165,5 @@ if __name__ == '__main__':
     b = QV()
     b.setScene(a)
     # b.resize(800,600)
-    a.draw_cell(2, 2, 1)
-    a.draw_cell(2, 3, 1)
     b.show()
     sys.exit(app.exec_())
