@@ -1,4 +1,4 @@
-import sys
+
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 from PyQt5.QtGui import QBrush
@@ -9,18 +9,11 @@ from PyQt5.QtWidgets import QMenu
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt
 
+import sys
+
 import main
 
-
-class Settings:
-
-    width = 50
-    height = 50
-    num_blocks_x = 10
-    num_blocks_y = 10
-    indentation = 2
-    table_size_x = width * num_blocks_x
-    table_size_y = height * num_blocks_y
+import Settings
 
 
 def create_action(parent, text, slot=None,
@@ -46,7 +39,7 @@ def create_action(parent, text, slot=None,
     if checked:
         action.setChecked(True)
     if slot is not None:
-        action.triggered.connect(slot) #??
+        action.triggered.connect(slot) # ??
 
     return action
 
@@ -58,9 +51,8 @@ class QS(QtWidgets.QGraphicsScene):
         self.Table = main.Game(Settings.num_blocks_x, Settings.num_blocks_y)
         self.lines = []
         self.draw_grid()
-        self.set_opacity(0.1)
+        self.set_opacity(0.3)
         # self.set_visible(False)
-        # self.delete_grid()
         self.draw_cells()
 
     def draw_cell(self, x=0, y=0, color=1):
@@ -164,7 +156,7 @@ class QV(QtWidgets.QGraphicsView):
             return
 
     def is_win(self):
-        return len(set(str(a.Table))) <= 2
+        return ("0" not in set(str(a.Table))) or ("1" not in set(str(a.Table)))
 
 
 if __name__ == '__main__':
