@@ -119,7 +119,8 @@ class QV(QtWidgets.QGraphicsView):
         self.dockWidget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
         self.dockWidgetContents = QtWidgets.QWidget()
         self.verticalLayoutWidget = QtWidgets.QWidget(self.dockWidgetContents)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 200, 100))  # разобраться
+        # self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 200, 400))  # разобраться
+
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
 
@@ -127,10 +128,13 @@ class QV(QtWidgets.QGraphicsView):
         self.verticalLayout.addWidget(self.label, stretch=0.2)
 
         self.textBrowser = QtWidgets.QTextBrowser(self.verticalLayoutWidget)
-        self.textBrowser
+
         self.verticalLayout.addWidget(self.textBrowser, stretch=0.2)
 
         self.dockWidget.setWidget(self.dockWidgetContents)
+
+        self.dockWidget.setMinimumWidth(150)
+        self.textBrowser.setMaximumWidth(150)
 
         self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
 
@@ -175,9 +179,9 @@ class QV(QtWidgets.QGraphicsView):
                 self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
 
                 if self.is_win():
-                    print("You Win", self.a.Table.NumberOfTurn)
-                    # print(self.a.Table.log)
-                    pass
+                    self.a.Table.log.append("You Win : " + str(self.a.Table.NumberOfTurn))
+
+                self.textBrowser.setText("\n".join((map(str, reversed(self.a.Table.log)))))  # сделать красиво
 
             else:
                 return
@@ -196,16 +200,16 @@ class Window(QMainWindow):
 
         self.menu = self.menuBar()
         self.create_menu()
-
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.b.dockWidget)
 
-
-
-
+    def new_random(self):
+        self.b.a.Table = main.Game(Settings.num_blocks_x, Settings.num_blocks_y)
+        self.b.a.draw_cells()
+        print('lol')
 
     def create_menu(self):
         self.file = self.menu.addMenu("Файл")
-        new_random = create_action(self.menu, "Случайный", slot=None,
+        new_random = create_action(self.menu, "Случайный", slot=self.new_random,
                                    shortcut=None, shortcuts=None, shortcut_context=None,
                                    icon=None, tooltip=None,
                                    checkable=False, checked=False)
@@ -258,10 +262,16 @@ class Window(QMainWindow):
             event.ignore()
 
 
-
-
-if __name__ == '__main__':
+def start():
     app = QtWidgets.QApplication(sys.argv)
     c = Window()
     c.show()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    # app = QtWidgets.QApplication(sys.argv)
+    # c = Window()
+    # c.show()
+    # sys.exit(app.exec_())
+    start()
