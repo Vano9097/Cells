@@ -113,13 +113,14 @@ class QV(QtWidgets.QGraphicsView):
         self.create_actions()
         self.create_dock()
 
+
     def create_dock(self):
 
         self.dockWidget = QtWidgets.QDockWidget()
         self.dockWidget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
         self.dockWidgetContents = QtWidgets.QWidget()
         self.verticalLayoutWidget = QtWidgets.QWidget(self.dockWidgetContents)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 150, 200))  # разобраться
+        # self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 150, 600))  # разобраться
 
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -168,7 +169,6 @@ class QV(QtWidgets.QGraphicsView):
     def mousePressEvent(self, event):
 
         point = self.mapToScene(event.x(), event.y())
-
         cell_x = int(point.x() // Settings.width)
         cell_y = int(point.y() // Settings.height)
 
@@ -182,8 +182,6 @@ class QV(QtWidgets.QGraphicsView):
                 if self.is_win():
                     self.a.Table.log.append("You Win : " + str(self.a.Table.NumberOfTurn))
                     # добавить всплывающее диалоговое окно с поздравлением и началом новой игры
-
-                # self.textBrowser.setText("\n".join((map(str, reversed(self.a.Table.log)))))  # сделать красиво
                 self.textBrowser.setText(self.str_log())  # сделать красиво
 
             else:
@@ -192,12 +190,19 @@ class QV(QtWidgets.QGraphicsView):
             return
 
     def str_log(self):
-        return "\n".join(
-            map(lambda point: str(point[0] + 1) + " " + str(Settings.num_blocks_y - point[1]) if len(point) == 2 else point,
-                reversed(self.a.Table.log)))
+
+        rez = ""
+        for point in reversed(self.a.Table.log):
+            if type(point) == tuple:
+                rez += "шаг " + str(point[0]) + ": " + str(point[1] + 1) + " " + str(
+                    Settings.num_blocks_y - point[2]) + "\n"
+            else:
+                rez += point + "\n"
+
+        return rez
 
     def is_win(self):
-        return ("0" not in set(str(self.a.Table))) or ("1" not in set(str(self.a.Table)))  #переписать нормально
+        return ("0" not in set(str(self.a.Table))) or ("1" not in set(str(self.a.Table)))  # переписать нормально
 
 
 class Window(QMainWindow):
@@ -208,15 +213,14 @@ class Window(QMainWindow):
 
         self.menu = self.menuBar()
         self.create_menu()
-        # self.b.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 150, self.height()))
-        # print(self.height(),self.width())
-
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.b.dockWidget)
-        self.adjustSize()
 
     def new_random(self):
-        self.b.a.Table = main.Game(Settings.num_blocks_x, Settings.num_blocks_y)
-        self.b.a.draw_cells()
+        self.b.a = QS()
+        self.b.setScene(self.b.a)
+        self.b.label.setText("Совершено ходов: " + str(self.b.a.Table.NumberOfTurn))
+
+        self.b.textBrowser.setText(self.b.str_log())
 
     def create_menu(self):
         self.file = self.menu.addMenu("Файл")
@@ -240,7 +244,7 @@ class Window(QMainWindow):
 
         self.file.addSeparator()
 
-        action_settings = create_action(self.menu, "Настройки", slot=None,
+        action_settings = create_action(self.menu, "Настройки", slot=self.change_menu,
                                         shortcut=None, shortcuts=None, shortcut_context=None,
                                         icon=None, tooltip=None,
                                         checkable=False, checked=False)
@@ -259,6 +263,25 @@ class Window(QMainWindow):
 
         self.setMenuBar(self.menu)
 
+    def change_menu(self):
+        dialog = QtWidgets.QInputDialog(self)
+        dialog.setLabelText("Размер поля")
+        dialog.setOkButtonText("&Bвoд")
+        dialog.setCancelButtonText("&Oтмeнa")
+        dialog.setInputMode(QtWidgets.QInputDialog.IntInput)
+
+        result = dialog.exec_()
+
+        if result == QtWidgets.QDialog.Accepted:
+            Settings.num_blocks_x = dialog.intValue()
+            Settings.num_blocks_y = dialog.intValue()
+            self.new_random()
+            return True
+        else:
+            return False
+
+
+
     def closeEvent(self, event):
 
         reply = QMessageBox.question(self, 'Подтверждение закрытия',
@@ -271,8 +294,7 @@ class Window(QMainWindow):
             event.ignore()
 
     def resizeEvent(self, еvent):
-        print(еvent.size())
-
+        self.b.verticalLayoutWidget.setFixedHeight(еvent.size().height() - 70)
         QtWidgets.QWidget.resizeEvent(self, еvent)
 
 

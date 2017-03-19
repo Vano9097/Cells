@@ -44,7 +44,7 @@ class Game:
         if 0 <= (y + 1) < self.size_y:
             self.field[x][y + 1].change_color()
 
-        self.log.append((x, y))
+        self.log.append((self.NumberOfTurn, x, y))
         # print(self.log)
 
     def __str__(self):
