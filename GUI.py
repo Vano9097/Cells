@@ -11,6 +11,8 @@ from PyQt5.QtCore import Qt
 
 import sys
 
+from PyQt5.QtWidgets import QMessageBox
+
 import main
 
 import Settings
@@ -109,6 +111,28 @@ class QV(QtWidgets.QGraphicsView):
 
         self.view_menu = QMenu(self)
         self.create_actions()
+        self.create_dock()
+
+    def create_dock(self):
+
+        self.dockWidget = QtWidgets.QDockWidget(self)
+        self.dockWidget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
+        self.dockWidgetContents = QtWidgets.QWidget()
+        self.verticalLayoutWidget = QtWidgets.QWidget(self.dockWidgetContents)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 200, 100))  # разобраться
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.label = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.verticalLayout.addWidget(self.label, stretch=0.2)
+
+        self.textBrowser = QtWidgets.QTextBrowser(self.verticalLayoutWidget)
+        self.textBrowser
+        self.verticalLayout.addWidget(self.textBrowser, stretch=0.2)
+
+        self.dockWidget.setWidget(self.dockWidgetContents)
+
+        self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
 
     def create_actions(self):
 
@@ -148,8 +172,11 @@ class QV(QtWidgets.QGraphicsView):
                 self.a.Table.turn(cell_x, cell_y)
                 self.a.draw_cells()
 
+                self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
+
                 if self.is_win():
                     print("You Win", self.a.Table.NumberOfTurn)
+                    # print(self.a.Table.log)
                     pass
 
             else:
@@ -166,8 +193,15 @@ class Window(QMainWindow):
         super().__init__(*args)
         self.b = QV()
         self.setCentralWidget(self.b)
+
         self.menu = self.menuBar()
         self.create_menu()
+
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.b.dockWidget)
+
+
+
+
 
     def create_menu(self):
         self.file = self.menu.addMenu("Файл")
@@ -199,17 +233,31 @@ class Window(QMainWindow):
                                         checkable=False, checked=False)
         self.file.addAction(action_settings)
 
-        self.file.addSeparator()
-
-        action_exit = create_action(self.menu, "Выход", slot=None,
-                                    shortcut=None, shortcuts=None, shortcut_context=None,
-                                    icon=None, tooltip=None,
-                                    checkable=False, checked=False)
-        self.file.addAction(action_exit)
+        # self.file.addSeparator()
+        #
+        # action_exit = create_action(self.menu, "Выход", slot=None,
+        #                             shortcut=None, shortcuts=None, shortcut_context=None,
+        #                             icon=None, tooltip=None,
+        #                             checkable=False, checked=False)
+        #
+        # self.file.addAction(action_exit)
 
         self.information = self.menu.addMenu("Справка")
 
         self.setMenuBar(self.menu)
+
+    def closeEvent(self, event):
+
+        reply = QMessageBox.question(self, 'Подтверждение закрытия',
+                                     "Вы уверены что хотите выйти?", QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
+
+
 
 
 if __name__ == '__main__':

@@ -1,11 +1,14 @@
 import random
 
+
 class Game:
-    def __init__(self, size_x, size_y = False, presetting=False):
+    def __init__(self, size_x, size_y=False, presetting=False):
         """
 
         :type presetting: Двумерный массив Cells
         """
+
+        self.log = []
 
         if not size_y:
             size_y = size_x
@@ -13,7 +16,7 @@ class Game:
         if presetting:
             self.field = presetting
         else:
-            self.field = [[Cells(random.randint(0,1)) for _ in range(size_y)] for _ in range(size_x)]
+            self.field = [[Cells(random.randint(0, 1)) for _ in range(size_y)] for _ in range(size_x)]
 
         self.size_x = size_x
         self.size_y = size_y
@@ -33,15 +36,16 @@ class Game:
             return
 
         if 0 <= (x - 1) < self.size_x:
-            self.field[x-1][y].change_color()
+            self.field[x - 1][y].change_color()
         if 0 <= (x + 1) < self.size_x:
-            self.field[x+1][y].change_color()
+            self.field[x + 1][y].change_color()
         if 0 <= (y - 1) < self.size_y:
-            self.field[x][y-1].change_color()
+            self.field[x][y - 1].change_color()
         if 0 <= (y + 1) < self.size_y:
-            self.field[x][y+1].change_color()
+            self.field[x][y + 1].change_color()
 
-
+        self.log.append((x, y))
+        # print(self.log)
 
     def __str__(self):
         return "\n".join(["".join(map(str, i)) for i in self.field])
@@ -76,6 +80,6 @@ class Cells:
 
 
 if __name__ == "__main__":
-    Table = Game(5,6)
+    Table = Game(5, 6)
     print(Table)
     # C2 = Cells(color=0)
