@@ -4,7 +4,7 @@ from PyQt5.QtGui import QBrush
 from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QPen
-from PyQt5.QtWidgets import QAction, qApp
+from PyQt5.QtWidgets import QAction, qApp, QSizePolicy
 from PyQt5.QtWidgets import QMenu, QMainWindow
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt
@@ -48,7 +48,7 @@ def create_action(parent, text, slot=None,
 class QS(QtWidgets.QGraphicsScene):
     def __init__(self, *args):
         super().__init__(*args)
-        self.Table = main.Game(Settings.num_blocks_x, Settings.num_blocks_y)
+        self.Table = main.Game(Settings.num_blocks_x, Settings.num_blocks_y, Settings.presetting)
         self.lines = []
         self.draw_grid()
         self.set_opacity(0.3)
@@ -115,26 +115,28 @@ class QV(QtWidgets.QGraphicsView):
 
     def create_dock(self):
 
-        self.dockWidget = QtWidgets.QDockWidget(self)
+        self.dockWidget = QtWidgets.QDockWidget()
         self.dockWidget.setFeatures(QtWidgets.QDockWidget.NoDockWidgetFeatures)
         self.dockWidgetContents = QtWidgets.QWidget()
         self.verticalLayoutWidget = QtWidgets.QWidget(self.dockWidgetContents)
-        # self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 200, 400))  # разобраться
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 150, 200))  # разобраться
 
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
 
         self.label = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.verticalLayout.addWidget(self.label, stretch=0.2)
+        self.verticalLayout.addWidget(self.label, stretch=0)
 
         self.textBrowser = QtWidgets.QTextBrowser(self.verticalLayoutWidget)
+        self.textBrowser.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
 
-        self.verticalLayout.addWidget(self.textBrowser, stretch=0.2)
+        self.verticalLayout.addWidget(self.textBrowser, stretch=0)
 
         self.dockWidget.setWidget(self.dockWidgetContents)
 
         self.dockWidget.setMinimumWidth(150)
-        self.textBrowser.setMaximumWidth(150)
+        self.dockWidget.setMinimumHeight(230)
+        self.textBrowser.setMaximumWidth(148)
 
         self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
 
@@ -170,26 +172,32 @@ class QV(QtWidgets.QGraphicsView):
         cell_x = int(point.x() // Settings.width)
         cell_y = int(point.y() // Settings.height)
 
-        if 0 <= cell_x <= Settings.num_blocks_x and 0 <= cell_y <= Settings.num_blocks_y:
+        if 0 <= cell_x < Settings.num_blocks_x and 0 <= cell_y < Settings.num_blocks_y:
 
             if event.button() == Qt.LeftButton:
                 self.a.Table.turn(cell_x, cell_y)
                 self.a.draw_cells()
 
                 self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
-
                 if self.is_win():
                     self.a.Table.log.append("You Win : " + str(self.a.Table.NumberOfTurn))
+                    # добавить всплывающее диалоговое окно с поздравлением и началом новой игры
 
-                self.textBrowser.setText("\n".join((map(str, reversed(self.a.Table.log)))))  # сделать красиво
+                # self.textBrowser.setText("\n".join((map(str, reversed(self.a.Table.log)))))  # сделать красиво
+                self.textBrowser.setText(self.str_log())  # сделать красиво
 
             else:
                 return
         else:
             return
 
+    def str_log(self):
+        return "\n".join(
+            map(lambda point: str(point[0] + 1) + " " + str(Settings.num_blocks_y - point[1]) if len(point) == 2 else point,
+                reversed(self.a.Table.log)))
+
     def is_win(self):
-        return ("0" not in set(str(self.a.Table))) or ("1" not in set(str(self.a.Table)))
+        return ("0" not in set(str(self.a.Table))) or ("1" not in set(str(self.a.Table)))  #переписать нормально
 
 
 class Window(QMainWindow):
@@ -200,22 +208,23 @@ class Window(QMainWindow):
 
         self.menu = self.menuBar()
         self.create_menu()
+        # self.b.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 0, 150, self.height()))
+        # print(self.height(),self.width())
+
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.b.dockWidget)
+        self.adjustSize()
 
     def new_random(self):
         self.b.a.Table = main.Game(Settings.num_blocks_x, Settings.num_blocks_y)
         self.b.a.draw_cells()
-        print('lol')
 
     def create_menu(self):
         self.file = self.menu.addMenu("Файл")
-        new_random = create_action(self.menu, "Случайный", slot=self.new_random,
-                                   shortcut=None, shortcuts=None, shortcut_context=None,
-                                   icon=None, tooltip=None,
-                                   checkable=False, checked=False)
-        self.file.addAction(new_random)
+        new_game = create_action(self.menu, "Заново", slot=self.new_random)
 
-        action_open = create_action(self.menu, "Открыть", slot=qApp.quit(),
+        self.file.addAction(new_game)
+
+        action_open = create_action(self.menu, "Открыть", slot=None,
                                     shortcut=None, shortcuts=None, shortcut_context=None,
                                     icon=None, tooltip=None,
                                     checkable=False, checked=False)

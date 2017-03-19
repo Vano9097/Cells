@@ -29,7 +29,7 @@ class Game:
         :param y: у-овая координата
         :return: пересчет поля с учетом хода. перекрашиваем соседние по грани клетки
         """
-        if 0 <= x < self.size_x and 0 <= y <= self.size_y:
+        if 0 <= x < self.size_x and 0 <= y < self.size_y:
             self.field[x][y].change_color()
             self.NumberOfTurn += 1
         else:
