@@ -270,6 +270,11 @@ class Window(QMainWindow):
         else:
             event.ignore()
 
+    def resizeEvent(self, еvent):
+        print(еvent.size())
+
+        QtWidgets.QWidget.resizeEvent(self, еvent)
+
 
 def start():
     app = QtWidgets.QApplication(sys.argv)
