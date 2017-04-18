@@ -18,6 +18,7 @@ class Game:
         else:
             self.field = [[Cells(random.randint(0, 1)) for _ in range(size_y)] for _ in range(size_x)]
 
+
         self.size_x = size_x
         self.size_y = size_y
         self.NumberOfTurn = 0

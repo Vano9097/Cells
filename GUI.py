@@ -17,6 +17,15 @@ import main
 
 import Settings
 
+from collections import Counter
+
+
+def filter_log(log):
+    short_log = list(map(lambda x: x[1:], log[:-1]))
+    count = Counter(short_log)
+    print(list(filter(lambda x: count[x] % 2, count)))
+
+
 
 def create_action(parent, text, slot=None,
                   shortcut=None, shortcuts=None, shortcut_context=None,
@@ -181,6 +190,7 @@ class QV(QtWidgets.QGraphicsView):
                 self.label.setText("Совершено ходов: " + str(self.a.Table.NumberOfTurn))
                 if self.is_win():
                     self.a.Table.log.append("You Win : " + str(self.a.Table.NumberOfTurn))
+                    filter_log(self.a.Table.log)
                     # добавить всплывающее диалоговое окно с поздравлением и началом новой игры
                 self.textBrowser.setText(self.str_log())  # сделать красиво
 
